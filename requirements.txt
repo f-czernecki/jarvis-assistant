@@ -1,0 +1,11 @@
+ollama==0.6.3
+faster-whisper==1.2.1
+sounddevice==0.5.6
+numpy==2.4.4
+kokoro-onnx==0.4.7
+onnxruntime==1.31.0
+openwakeword==0.6.0
+spotipy==2.26.0
+python-dotenv==1.2.4
+pystray==0.19.5
+Pillow==12.2.0

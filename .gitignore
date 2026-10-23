@@ -1,0 +1,37 @@
+# Private configuration
+.env
+.env.*
+!.env.example
+
+# Spotify authentication
+.cache
+.cache-*
+.spotify-cache*
+spotify_token.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Logs and runtime state
+logs/
+*.log
+*.log.*
+jarvis.lock
+
+# Downloaded models
+models/
+*.onnx
+*.bin
+*.safetensors
+
+# Local editor configuration
+.vscode/
+.idea/
+
+# Build output
+build/
+dist/
+*.egg-info/
