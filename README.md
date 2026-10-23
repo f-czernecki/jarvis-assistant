@@ -1,38 +1,40 @@
-# Jarvis — Personal AI Assistant
+# Jarvis
 
-Jarvis is a voice-controlled desktop assistant for Windows. It runs
-in the background, wakes up when it hears “Hey Jarvis,” and responds
-in English using a natural voice.
+Jarvis is a personal voice assistant built in Python. It runs in the
+background on Windows and listens for “Hey Jarvis” to start a conversation.
 
-## Features
+This is the first working version. It can answer questions and control Spotify.
 
-- Voice conversations with a local language model.
-- Spoken responses that can be interrupted with “Hey Jarvis.”
-- Application launching and opening Python files in VS Code.
-- Spotify control: songs, playlists, play/pause, track skipping,
-  and volume adjustment.
-- Automatic music ducking during conversations.
-- Standby mode after playback commands or “Thanks Jarvis.”
-- System tray controls for pausing, resuming, and exiting.
-- Windows autostart, rotating logs, and single-instance protection.
+## What works so far
 
-## Technology
+- Conversations in English with a local language model.
+- Voice responses, with “Hey Jarvis” to interrupt playback.
+- Playing songs and playlists on Spotify.
+- Pausing music, skipping tracks, and changing volume.
+- A tray icon to pause listening, open logs, or close the assistant.
+- Starting automatically after logging into Windows.
 
-Python · Ollama / Qwen2.5 · faster-whisper · openWakeWord ·
-Kokoro ONNX · Spotify Web API · pystray
+## Built with
 
-Speech recognition, language processing, and speech synthesis run
-locally. Spotify control uses the Spotify Web API.
+- Ollama with Qwen2.5 for conversations and tool calls.
+- faster-whisper for speech recognition.
+- openWakeWord for “Hey Jarvis” detection.
+- Kokoro ONNX for voice output.
+- Spotify Web API for music control.
+- pystray for the tray menu.
 
-## Planned Features
+The speech models and language model run locally. Spotify control
+requires an internet connection.
 
-- Research assistance using a personal library of academic papers.
-- Integration with engineering applications, including Autodesk Fusion.
-- Python script execution and project workflow automation.
-- A physical desktop interface.
+## Next steps
 
-## Status
+- Searching and discussing papers from a personal article library.
+- Working with engineering software such as Autodesk Fusion.
+- Running Python scripts and handling longer tasks.
+- Eventually building a physical version for the desk.
 
-Version 1.0 is configured for a specific Windows environment.
-Paths and device settings require manual configuration.
-Liked Songs playback is not available in this version.
+## Current state
+
+Version 1.0 works on the computer it was configured for. Some paths
+and settings are still hardcoded, and there are bugs and rough edges
+to work through. Liked Songs playback is not supported yet.
