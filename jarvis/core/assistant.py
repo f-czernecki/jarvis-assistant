@@ -1,17 +1,17 @@
-from logging_setup import setup_logging
-from app_state import shutdown_event,pause_event
+from jarvis.logging_setup import setup_logging
+from jarvis.core.app_state import shutdown_event,pause_event
 LOG_FILE = setup_logging()
 from time import perf_counter
 import re
 from ollama import chat
-from voice_input import listen_and_transcribe, get_model
-from wake_word import WakeWordListener
+from jarvis.audio.voice_input import listen_and_transcribe, get_model
+from jarvis.audio.wake_word import WakeWordListener
 import winsound
 import json
 from urllib.error import URLError
 from urllib.request import urlopen
 import traceback
-from spotify_tools import (
+from jarvis.tools.spotify_tools import (
     spotify_now_playing,
     spotify_next_track,
     spotify_previous_track,
@@ -25,17 +25,17 @@ from spotify_tools import (
     spotify_play_playlist,
     spotify_play_liked_songs,
 )
-from config import (
+from jarvis.config import (
     OLLAMA_MODEL as MODEL,
     OLLAMA_TAGS_URL,
     MAX_TOOL_ROUNDS,
 )
-from voice_output import (
+from jarvis.audio.voice_output import (
     speak,
     get_tts_model,
     get_interrupt_listener,
 )
-from script_tools import (
+from jarvis.tools.script_tools import (
     list_scripts,
     open_script,
     list_apps,

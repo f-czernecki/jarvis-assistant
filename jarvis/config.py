@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 # Główny folder projektu — obecnie config.py znajduje się w jego katalogu.
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_FILE = BASE_DIR / ".env"
 
 # Na tym etapie zachowujemy dotychczasową lokalizację danych.

@@ -4,9 +4,9 @@ from threading import Event, Thread
 import sounddevice as sd
 from kokoro_onnx import Kokoro
 
-from app_state import shutdown_event, pause_event
-from wake_word import WakeWordListener
-from config import (
+from jarvis.core.app_state import shutdown_event, pause_event
+from jarvis.audio.wake_word import WakeWordListener
+from jarvis.config import (
     KOKORO_MODEL_DIR as MODEL_DIR,
     TTS_VOICE as VOICE,
     TTS_LANGUAGE as LANGUAGE,

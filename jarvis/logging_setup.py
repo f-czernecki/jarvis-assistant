@@ -4,7 +4,7 @@ import sys
 from logging.handlers import RotatingFileHandler
 from threading import RLock
 
-from config import (
+from jarvis.config import (
     LOG_DIR,
     LOG_FILE,
     LOG_MAX_BYTES,

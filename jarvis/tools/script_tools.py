@@ -2,7 +2,7 @@ import os
 import subprocess
 from pathlib import Path
 from functools import lru_cache
-from config import PROJECTS_DIR, APPS_DIR, VSCODE_EXE
+from jarvis.config import PROJECTS_DIR, APPS_DIR, VSCODE_EXE
 IGNORED_FOLDERS = {
     ".git",
     ".venv",

@@ -1,4 +1,4 @@
-from logging_setup import setup_logging
+from jarvis.logging_setup import setup_logging
 
 LOG_FILE = setup_logging()
 
@@ -9,9 +9,7 @@ from threading import Thread
 import pystray
 from PIL import Image, ImageDraw
 
-from app_state import shutdown_event,pause_event
-from single_instance import SingleInstance
-
+from jarvis.core.app_state import shutdown_event,pause_event
 def create_icon_image():
     """Create a simple icon without an external image file."""
     image = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
@@ -77,7 +75,7 @@ def request_shutdown(icon, item):
 def run_assistant(icon):
     try:
         # Import tutaj: cięższe biblioteki ładują się po pokazaniu ikony.
-        from assistant import main as assistant_main
+        from jarvis.core.assistant import main as assistant_main
 
         if not shutdown_event.is_set():
             assistant_main()
@@ -137,15 +135,3 @@ def main():
         icon.stop()
         print("[Tray] Application closed.")
 
-
-if __name__ == "__main__":
-    instance = SingleInstance()
-
-    if not instance.acquire():
-        print("[Startup] Jarvis is already running.")
-
-    else:
-        try:
-            main()
-        finally:
-            instance.release()

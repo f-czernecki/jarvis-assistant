@@ -2,8 +2,8 @@ import numpy as np
 import sounddevice as sd
 from openwakeword.model import Model
 
-from app_state import shutdown_event, pause_event
-from config import (
+from jarvis.core.app_state import shutdown_event, pause_event
+from jarvis.config import (
     WAKE_MODEL_DIR as MODEL_DIR,
     SAMPLE_RATE,
     WAKE_BLOCK_SIZE as BLOCK_SIZE,

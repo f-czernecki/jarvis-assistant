@@ -1,6 +1,6 @@
 import msvcrt
 import os
-from config import INSTANCE_LOCK_FILE
+from jarvis.config import INSTANCE_LOCK_FILE
 
 class SingleInstance:
     """Keep an exclusive Windows file lock while the app is running."""

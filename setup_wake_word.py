@@ -1,5 +1,5 @@
 from openwakeword.utils import download_models
-from config import WAKE_MODEL_DIR as MODEL_DIR
+from jarvis.config import WAKE_MODEL_DIR as MODEL_DIR
 
 
 

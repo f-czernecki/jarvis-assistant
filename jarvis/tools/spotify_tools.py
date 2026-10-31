@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 from spotipy.cache_handler import CacheFileHandler
 from spotipy.oauth2 import SpotifyPKCE
 from time import monotonic,sleep
-from script_tools import open_app
-from config import (
+from jarvis.tools.script_tools import open_app
+from jarvis.config import (
     ENV_FILE,
     SPOTIFY_TOKEN_FILE,
     SPOTIFY_REDIRECT_URI_DEFAULT,
