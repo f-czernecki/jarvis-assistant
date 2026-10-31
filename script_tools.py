@@ -2,13 +2,7 @@ import os
 import subprocess
 from pathlib import Path
 from functools import lru_cache
-
-PROJECTS_DIR = Path(r"E:\Code")
-APPS_DIR = Path(r"E:\Shortcuts")
-VSCODE_EXE = Path(
-    r"E:\Microsoft VS Code\Code.exe"
-)
-
+from config import PROJECTS_DIR, APPS_DIR, VSCODE_EXE
 IGNORED_FOLDERS = {
     ".git",
     ".venv",

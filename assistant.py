@@ -1,8 +1,6 @@
 from logging_setup import setup_logging
 from app_state import shutdown_event,pause_event
 LOG_FILE = setup_logging()
-
-print(f"[Logging] Log file: {LOG_FILE}")
 from time import perf_counter
 import re
 from ollama import chat
@@ -27,6 +25,11 @@ from spotify_tools import (
     spotify_play_playlist,
     spotify_play_liked_songs,
 )
+from config import (
+    OLLAMA_MODEL as MODEL,
+    OLLAMA_TAGS_URL,
+    MAX_TOOL_ROUNDS,
+)
 from voice_output import (
     speak,
     get_tts_model,
@@ -39,11 +42,6 @@ from script_tools import (
     open_app,
     refresh_catalogs,
 )
-
-
-MODEL = "qwen2.5:3b"
-MAX_TOOL_ROUNDS = 5
-
 STANDBY_AFTER_TOOLS = {
     "spotify_play",
     "spotify_pause",
@@ -281,7 +279,7 @@ def is_exit_command(text: str) -> bool:
     return normalize_command(text) in EXIT_PHRASES
 def wait_for_ollama() -> bool:
     """Wait for local Ollama and verify that our model is installed."""
-    url = "http://127.0.0.1:11434/api/tags"
+    url =  OLLAMA_TAGS_URL
 
     print("[Startup] Waiting for Ollama...")
 

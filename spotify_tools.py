@@ -1,14 +1,20 @@
 import os
-from pathlib import Path
-
 import spotipy
 from dotenv import load_dotenv
 from spotipy.cache_handler import CacheFileHandler
 from spotipy.oauth2 import SpotifyPKCE
 from time import monotonic,sleep
 from script_tools import open_app
+from config import (
+    ENV_FILE,
+    SPOTIFY_TOKEN_FILE,
+    SPOTIFY_REDIRECT_URI_DEFAULT,
+    SPOTIFY_REQUEST_TIMEOUT,
+    PREFERRED_SPOTIFY_DEVICE,
+    SPOTIFY_SHORTCUT,
+    CONVERSATION_VOLUME,
+)
 
-PROJECT_DIR = Path(__file__).resolve().parent
 
 SCOPES = " ".join([
     "user-read-playback-state",
@@ -21,49 +27,42 @@ SCOPES = " ".join([
 _client = None
 _ducked_playback = None
 
-CONVERSATION_VOLUME = 10
 
 def get_spotify() -> spotipy.Spotify:
     """Create one Spotify client and reuse it."""
     global _client
 
     if _client is None:
-        load_dotenv(PROJECT_DIR / ".env")
+        load_dotenv(ENV_FILE)
 
         client_id = os.getenv("SPOTIFY_CLIENT_ID")
 
         redirect_uri = os.getenv(
             "SPOTIFY_REDIRECT_URI",
-            "http://127.0.0.1:8888/callback",
+            SPOTIFY_REDIRECT_URI_DEFAULT,
         )
 
         if not client_id:
             raise RuntimeError(
                 "Missing SPOTIFY_CLIENT_ID in the .env file."
             )
-
-        cache_dir = (
-            Path(os.environ["LOCALAPPDATA"])
-            / "JarvisAssistant"
+        
+        SPOTIFY_TOKEN_FILE.parent.mkdir(
+            parents=True,
+            exist_ok=True,
         )
-
-        cache_dir.mkdir(parents=True, exist_ok=True)
 
         auth_manager = SpotifyPKCE(
             client_id=client_id,
             redirect_uri=redirect_uri,
             scope=SCOPES,
-            cache_handler=CacheFileHandler(
-                cache_path=str(
-                    cache_dir / "spotify_token.json"
-                )
-            ),
+            cache_handler=CacheFileHandler(cache_path=str(SPOTIFY_TOKEN_FILE)),
             open_browser=True,
         )
 
         _client = spotipy.Spotify(
             auth_manager=auth_manager,
-            requests_timeout=10,
+            requests_timeout=SPOTIFY_REQUEST_TIMEOUT,
         )
 
     return _client
@@ -95,8 +94,6 @@ def spotify_now_playing() -> str:
 
     return f"Playing {title} by {artists}."
 
-PREFERRED_SPOTIFY_DEVICE = "DESKTOP-K641TTQ"
-SPOTIFY_SHORTCUT = "Spotify.lnk"
 
 def _get_active_device() -> dict:
     """Use an active device or activate the preferred computer."""

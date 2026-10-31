@@ -1,9 +1,6 @@
-from pathlib import Path
-
 from openwakeword.utils import download_models
+from config import WAKE_MODEL_DIR as MODEL_DIR
 
-
-MODEL_DIR = Path(r"E:\Models\WakeWord")
 
 
 def main():

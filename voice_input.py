@@ -1,24 +1,24 @@
 from collections import deque
-from pathlib import Path
-from app_state import shutdown_event,pause_event
+
 import numpy as np
 import sounddevice as sd
 from faster_whisper import WhisperModel
 
-MODEL_DIR = Path(r"E:\Models\Whisper")
-MODEL_DIR.mkdir(parents=True, exist_ok=True)
+from app_state import shutdown_event, pause_event
+from config import (
+    WHISPER_MODEL_DIR as MODEL_DIR,
+    WHISPER_MODEL_NAME,
+    WHISPER_DEVICE,
+    WHISPER_COMPUTE_TYPE,
+    MICROPHONE,
+    SAMPLE_RATE,
+    BLOCK_SECONDS,
+    SILENCE_SECONDS,
+    START_TIMEOUT,
+    MAX_RECORD_SECONDS,
+    VOLUME_THRESHOLD,
+)
 
-MICROPHONE = None  # Wpisz tutaj numer swojego mikrofonu!
-
-SAMPLE_RATE = 16000
-BLOCK_SECONDS = 0.05
-
-SILENCE_SECONDS = 1.0
-START_TIMEOUT = 8.0
-MAX_RECORD_SECONDS = 20.0
-
-# Próg głośności: trzeba go dopasować do mikrofonu.
-VOLUME_THRESHOLD = 0.015
 
 _model = None
 
@@ -27,16 +27,14 @@ def get_model():
     global _model
 
     if _model is None:
-        print("Loading speech model...")
+        MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
         _model = WhisperModel(
-            "small.en",
-            device="cpu",
-            compute_type="int8",
+            WHISPER_MODEL_NAME,
+            device=WHISPER_DEVICE,
+            compute_type=WHISPER_COMPUTE_TYPE,
             download_root=str(MODEL_DIR),
         )
-
-        print("Speech model ready.")
 
     return _model
 
