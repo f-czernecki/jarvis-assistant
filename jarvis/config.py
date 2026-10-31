@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 
@@ -7,7 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_FILE = BASE_DIR / ".env"
 
 # Na tym etapie zachowujemy dotychczasową lokalizację danych.
-DATA_DIR = Path(os.environ["LOCALAPPDATA"]) / "JarvisAssistant"
+DATA_DIR = BASE_DIR / "data"
 
 LOG_DIR = DATA_DIR / "logs"
 LOG_FILE = LOG_DIR / "jarvis.log"
@@ -22,7 +21,7 @@ INSTANCE_LOCK_FILE = DATA_DIR / "jarvis.lock"
 # Pozostawiamy obecne ustawienie; listę projektów zmienimy osobno.
 PROJECTS_DIR = Path(r"E:\Code")
 
-APPS_DIR = Path(r"E:\Shortcuts")
+APPS_DIR = BASE_DIR / "shortcuts"
 VSCODE_EXE = Path(r"E:\Microsoft VS Code\Code.exe")
 
 
@@ -33,7 +32,7 @@ MAX_TOOL_ROUNDS = 5
 
 
 # Rozpoznawanie mowy
-WHISPER_MODEL_DIR = Path(r"E:\Models\Whisper")
+WHISPER_MODEL_DIR = BASE_DIR / "models" / "Whisper"
 WHISPER_MODEL_NAME = "small.en"
 WHISPER_DEVICE = "cpu"
 WHISPER_COMPUTE_TYPE = "int8"
@@ -49,13 +48,13 @@ VOLUME_THRESHOLD = 0.015
 
 
 # Wybudzanie
-WAKE_MODEL_DIR = Path(r"E:\Models\WakeWord")
+WAKE_MODEL_DIR = BASE_DIR / "models" / "WakeWord"
 WAKE_BLOCK_SIZE = 1280
 WAKE_THRESHOLD = 0.5
 
 
 # Odpowiedzi głosowe
-KOKORO_MODEL_DIR = Path(r"E:\Models\Kokoro")
+KOKORO_MODEL_DIR = BASE_DIR / "models" / "Kokoro"
 TTS_VOICE = "af_heart"
 TTS_LANGUAGE = "en-us"
 TTS_SPEED = 1.0
