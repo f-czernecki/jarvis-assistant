@@ -19,8 +19,12 @@ INSTANCE_LOCK_FILE = DATA_DIR / "jarvis.lock"
 
 # Folder skryptów dostępnych dla Jarvisa.
 # Pozostawiamy obecne ustawienie; listę projektów zmienimy osobno.
-PROJECTS_DIR = Path(r"E:\Code")
-
+PROJECTS_DIR = Path(r"E:\Github")
+# Nazwy podfolderów z projektami dostępnymi dla Jarvisa.
+PROJECT_FOLDERS = (
+    "ps5-robotic-arm",
+    "jarvis-assistant"
+)
 APPS_DIR = BASE_DIR / "shortcuts"
 VSCODE_EXE = Path(r"E:\Microsoft VS Code\Code.exe")
 

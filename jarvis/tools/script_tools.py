@@ -2,7 +2,12 @@ import os
 import subprocess
 from pathlib import Path
 from functools import lru_cache
-from jarvis.config import PROJECTS_DIR, APPS_DIR, VSCODE_EXE
+from jarvis.config import (
+    PROJECTS_DIR,
+    PROJECT_FOLDERS,
+    APPS_DIR,
+    VSCODE_EXE,
+)
 IGNORED_FOLDERS = {
     ".git",
     ".venv",
@@ -11,15 +16,36 @@ IGNORED_FOLDERS = {
     "node_modules",
 }
 @lru_cache(maxsize=8)
-def discover_files(root: Path, extension: str) -> list[str]:
-    """Find files, skipping environment and dependency folders."""
+def discover_files(
+    root: Path,
+    extension: str,
+    allowed_folders: tuple[str, ...] | None = None,
+) -> list[str]:
+    """Find files, optionally scanning only selected top-level folders."""
     results = []
+
+    allowed_names = (
+        {name.casefold() for name in allowed_folders}
+        if allowed_folders is not None
+        else None
+    )
 
     for current_folder, folders, files in os.walk(root):
         folders[:] = [
-            name for name in folders
+            name
+            for name in folders
             if name.lower() not in IGNORED_FOLDERS
         ]
+
+        if Path(current_folder) == root and allowed_names is not None:
+            folders[:] = [
+                name
+                for name in folders
+                if name.casefold() in allowed_names
+            ]
+
+            # Pomijamy pliki leżące bezpośrednio w E:\Github.
+            continue
 
         for name in files:
             if name.lower().endswith(extension):
@@ -47,13 +73,14 @@ def checked_path(root: Path, relative_path: str, extension: str) -> Path:
 
 
 def list_scripts() -> str:
-    """List available Python scripts with paths relative to the projects folder."""
-    if not PROJECTS_DIR.is_dir():
-        return f"Projects folder not found: {PROJECTS_DIR}"
+    """List available Python scripts from enabled project folders."""
+    scripts = discover_files(
+        PROJECTS_DIR,
+        ".py",
+        PROJECT_FOLDERS,
+    )
 
-    scripts = discover_files(PROJECTS_DIR, ".py")
     return "\n".join(scripts) if scripts else "No Python scripts found."
-
 
 def open_script(relative_path: str) -> str:
     """Open a Python script in VS Code for editing without executing it.
@@ -63,7 +90,20 @@ def open_script(relative_path: str) -> str:
     """
     try:
         path = checked_path(PROJECTS_DIR, relative_path, ".py")
+        relative = path.relative_to(PROJECTS_DIR.resolve())
 
+        allowed_names = {
+            name.casefold()
+            for name in PROJECT_FOLDERS
+        }
+
+        if (
+            len(relative.parts) < 2
+            or relative.parts[0].casefold() not in allowed_names
+        ):
+            raise ValueError(
+                "This project is not enabled in PROJECT_FOLDERS."
+            )
         if not VSCODE_EXE.is_file():
             return f"VS Code executable not found: {VSCODE_EXE}"
 
@@ -113,7 +153,11 @@ def refresh_catalogs() -> str:
     """Refresh the lists of available Python scripts and application shortcuts."""
     discover_files.cache_clear()
 
-    script_count = len(discover_files(PROJECTS_DIR, ".py"))
+    script_count = len(discover_files(
+        PROJECTS_DIR,
+        ".py",
+        PROJECT_FOLDERS,
+    ))
     app_count = len(discover_files(APPS_DIR, ".lnk"))
 
     return (
