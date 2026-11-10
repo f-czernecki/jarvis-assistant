@@ -35,3 +35,8 @@ models/
 build/
 dist/
 *.egg-info/
+
+# Local Jarvis resources
+/data/
+/models/
+/shortcuts/

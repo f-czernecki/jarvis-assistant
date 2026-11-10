@@ -1,19 +1,17 @@
-from logging_setup import setup_logging
-from app_state import shutdown_event,pause_event
+from jarvis.logging_setup import setup_logging
+from jarvis.core.app_state import shutdown_event,pause_event
 LOG_FILE = setup_logging()
-
-print(f"[Logging] Log file: {LOG_FILE}")
 from time import perf_counter
 import re
 from ollama import chat
-from voice_input import listen_and_transcribe, get_model
-from wake_word import WakeWordListener
+from jarvis.audio.voice_input import listen_and_transcribe, get_model
+from jarvis.audio.wake_word import WakeWordListener
 import winsound
 import json
 from urllib.error import URLError
 from urllib.request import urlopen
 import traceback
-from spotify_tools import (
+from jarvis.tools.spotify_tools import (
     spotify_now_playing,
     spotify_next_track,
     spotify_previous_track,
@@ -27,23 +25,23 @@ from spotify_tools import (
     spotify_play_playlist,
     spotify_play_liked_songs,
 )
-from voice_output import (
+from jarvis.config import (
+    OLLAMA_MODEL as MODEL,
+    OLLAMA_TAGS_URL,
+    MAX_TOOL_ROUNDS,
+)
+from jarvis.audio.voice_output import (
     speak,
     get_tts_model,
     get_interrupt_listener,
 )
-from script_tools import (
+from jarvis.tools.script_tools import (
     list_scripts,
     open_script,
     list_apps,
     open_app,
     refresh_catalogs,
 )
-
-
-MODEL = "qwen2.5:3b"
-MAX_TOOL_ROUNDS = 5
-
 STANDBY_AFTER_TOOLS = {
     "spotify_play",
     "spotify_pause",
@@ -96,6 +94,8 @@ SYSTEM_PROMPT = (
     "use spotify_play_liked_songs. "
     "Never invent Spotify track or playlist identifiers. "
     "Stop or pause means pause playback, preserving the current position. "
+    "For action requests, call the appropriate tool without announcing the action."
+    "If the requested item is missing or ambiguous, ask one short, specific question."
 
 )
 
@@ -128,10 +128,14 @@ tools = list(available_tools.values())
 
 messages = []
 
+def enter_standby() -> None:
+    """End the conversation and restore the previous music volume."""
+    del messages[2:]
+    restore_spotify_volume()
 
 def handle_command(command: str):
     if shutdown_event.is_set() or pause_event.is_set():
-        return False
+        return True
     start = perf_counter()
 
     messages.append({
@@ -154,7 +158,7 @@ def handle_command(command: str):
             keep_alive=-1,
         )
         if shutdown_event.is_set() or pause_event.is_set():
-            return False
+            return True
         
         messages.append(response.message)
 
@@ -198,10 +202,12 @@ def handle_command(command: str):
                             "content": build_catalog(),
                         }
                         refreshed = True
-
-                except Exception as error:
+                except Exception:
                     traceback.print_exc()
-                    result = f"Tool error: {error}"
+                    if name.startswith("spotify_"):
+                        result = "Couldn't complete the Spotify request."
+                    else:
+                        result = "Couldn't complete that command."
 
             # None zapisujemy jako techniczny wynik dla modelu,
             # ale nigdy nie dodajemy go do wypowiadanej odpowiedzi.
@@ -258,6 +264,8 @@ SLEEP_PHRASES = {
     "go to sleep",
     "go to sleep jarvis",
     "jarvis go to sleep",
+    "nothing",
+    "nevermind",
 }
 
 EXIT_PHRASES = {
@@ -281,7 +289,7 @@ def is_exit_command(text: str) -> bool:
     return normalize_command(text) in EXIT_PHRASES
 def wait_for_ollama() -> bool:
     """Wait for local Ollama and verify that our model is installed."""
-    url = "http://127.0.0.1:11434/api/tags"
+    url =  OLLAMA_TAGS_URL
 
     print("[Startup] Waiting for Ollama...")
 
@@ -344,7 +352,7 @@ def main():
         while not shutdown_event.is_set():
             try:
                 if pause_event.is_set():
-                    restore_spotify_volume()
+                    enter_standby()
                     active = False
 
                     while pause_event.is_set():
@@ -377,22 +385,19 @@ def main():
                     break
 
                 if is_sleep_command(command):
-                    restore_spotify_volume()
+                    enter_standby()
                     active = False
                     continue
 
                 if normalize_command(command) == "hey jarvis":
                     continue
 
-                # Zapamiętujemy granicę historii przed nowym poleceniem.
-                history_length = len(messages)
 
                 try:
                     return_to_standby = handle_command(command)
 
                 except Exception as error:
                     traceback.print_exc()
-                    del messages[history_length:]
 
                     print(
                         f"[Error] Command failed: "
@@ -403,13 +408,13 @@ def main():
                         "Check their results before repeating the command."
                     )
 
-                    restore_spotify_volume()
+                    enter_standby()
                     active = False
 
                     continue
 
                 if return_to_standby:
-                    restore_spotify_volume()
+                    enter_standby()
                     active = False
                     print("Standby. Say 'Hey Jarvis'.")
 
@@ -438,7 +443,7 @@ def main():
     finally:
         shutdown_event.set()
         print("[Shutdown] Restoring Spotify volume...")
-        restore_spotify_volume()
+        enter_standby()
         print("[Shutdown] Assistant closed.")
 
 

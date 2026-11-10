@@ -2,13 +2,12 @@ import os
 import subprocess
 from pathlib import Path
 from functools import lru_cache
-
-PROJECTS_DIR = Path(r"E:\Code")
-APPS_DIR = Path(r"E:\Shortcuts")
-VSCODE_EXE = Path(
-    r"E:\Microsoft VS Code\Code.exe"
+from jarvis.config import (
+    PROJECTS_DIR,
+    PROJECT_FOLDERS,
+    APPS_DIR,
+    VSCODE_EXE,
 )
-
 IGNORED_FOLDERS = {
     ".git",
     ".venv",
@@ -17,15 +16,36 @@ IGNORED_FOLDERS = {
     "node_modules",
 }
 @lru_cache(maxsize=8)
-def discover_files(root: Path, extension: str) -> list[str]:
-    """Find files, skipping environment and dependency folders."""
+def discover_files(
+    root: Path,
+    extension: str,
+    allowed_folders: tuple[str, ...] | None = None,
+) -> list[str]:
+    """Find files, optionally scanning only selected top-level folders."""
     results = []
+
+    allowed_names = (
+        {name.casefold() for name in allowed_folders}
+        if allowed_folders is not None
+        else None
+    )
 
     for current_folder, folders, files in os.walk(root):
         folders[:] = [
-            name for name in folders
+            name
+            for name in folders
             if name.lower() not in IGNORED_FOLDERS
         ]
+
+        if Path(current_folder) == root and allowed_names is not None:
+            folders[:] = [
+                name
+                for name in folders
+                if name.casefold() in allowed_names
+            ]
+
+            # Pomijamy pliki leżące bezpośrednio w E:\Github.
+            continue
 
         for name in files:
             if name.lower().endswith(extension):
@@ -53,15 +73,16 @@ def checked_path(root: Path, relative_path: str, extension: str) -> Path:
 
 
 def list_scripts() -> str:
-    """List available Python scripts with paths relative to the projects folder."""
-    if not PROJECTS_DIR.is_dir():
-        return f"Projects folder not found: {PROJECTS_DIR}"
+    """List available Python scripts from enabled project folders."""
+    scripts = discover_files(
+        PROJECTS_DIR,
+        ".py",
+        PROJECT_FOLDERS,
+    )
 
-    scripts = discover_files(PROJECTS_DIR, ".py")
     return "\n".join(scripts) if scripts else "No Python scripts found."
 
-
-def open_script(relative_path: str) -> str:
+def open_script(relative_path: str) -> str|None:
     """Open a Python script in VS Code for editing without executing it.
 
     Args:
@@ -69,9 +90,22 @@ def open_script(relative_path: str) -> str:
     """
     try:
         path = checked_path(PROJECTS_DIR, relative_path, ".py")
+        relative = path.relative_to(PROJECTS_DIR.resolve())
 
+        allowed_names = {
+            name.casefold()
+            for name in PROJECT_FOLDERS
+        }
+
+        if (
+            len(relative.parts) < 2
+            or relative.parts[0].casefold() not in allowed_names
+        ):
+            raise ValueError(
+                "This project is not enabled in PROJECT_FOLDERS."
+            )
         if not VSCODE_EXE.is_file():
-            return f"VS Code executable not found: {VSCODE_EXE}"
+            return f"Couldn't find VS Code"
 
         subprocess.Popen([
             str(VSCODE_EXE),
@@ -81,8 +115,15 @@ def open_script(relative_path: str) -> str:
 
         return f"Sent VS Code a request to open: {relative_path}"
 
+
+    except FileNotFoundError as error:
+        print(f"[Scripts] {error}")
+        return "File not found. Say the name again."
+
     except (OSError, ValueError) as error:
-        return f"Could not open script: {error}"
+        print(f"[Scripts] Could not open {relative_path}: {error}")
+        return "Couldn't open that file."
+
 
 
 def list_apps() -> str:
@@ -94,7 +135,7 @@ def list_apps() -> str:
     return "\n".join(shortcuts) if shortcuts else "No .lnk shortcuts found."
 
 
-def open_app(shortcut_name: str) -> str:
+def open_app(shortcut_name: str) -> str|None:
 
     """Open or launch a desktop application using its catalog shortcut.
     
@@ -112,14 +153,23 @@ def open_app(shortcut_name: str) -> str:
 
         return f"Sent Windows a request to launch: {shortcut_name}"
 
+    except FileNotFoundError as error:
+        print(f"[Apps] {error}")
+        return "App not found. Say the name again."
+
     except (OSError, ValueError) as error:
-        return f"Could not launch application: {error}"
+        print(f"[Apps] Could not open {shortcut_name}: {error}")
+        return "Couldn't open that app."
     
 def refresh_catalogs() -> str:
     """Refresh the lists of available Python scripts and application shortcuts."""
     discover_files.cache_clear()
 
-    script_count = len(discover_files(PROJECTS_DIR, ".py"))
+    script_count = len(discover_files(
+        PROJECTS_DIR,
+        ".py",
+        PROJECT_FOLDERS,
+    ))
     app_count = len(discover_files(APPS_DIR, ".lnk"))
 
     return (

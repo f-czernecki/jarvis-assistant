@@ -1,20 +1,19 @@
-from pathlib import Path
 from time import perf_counter
 from threading import Event, Thread
-from app_state import shutdown_event, pause_event
-from wake_word import WakeWordListener
+
 import sounddevice as sd
 from kokoro_onnx import Kokoro
 
+from jarvis.core.app_state import shutdown_event, pause_event
+from jarvis.audio.wake_word import WakeWordListener
+from jarvis.config import (
+    KOKORO_MODEL_DIR as MODEL_DIR,
+    TTS_VOICE as VOICE,
+    TTS_LANGUAGE as LANGUAGE,
+    TTS_SPEED as SPEECH_SPEED,
+    OUTPUT_DEVICE,
+)
 
-MODEL_DIR = Path(r"E:\Models\Kokoro")
-
-VOICE = "af_heart"
-LANGUAGE = "en-us"
-SPEECH_SPEED = 1.0
-
-# None oznacza domyślne urządzenie odtwarzające.
-OUTPUT_DEVICE = None
 
 _model = None
 _interrupt_listener = None

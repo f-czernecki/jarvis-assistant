@@ -1,20 +1,15 @@
 import atexit
 import logging
-import os
 import sys
 from logging.handlers import RotatingFileHandler
-from pathlib import Path
 from threading import RLock
 
-
-LOG_DIR = (
-    Path(os.environ["LOCALAPPDATA"])
-    / "JarvisAssistant"
-    / "logs"
+from jarvis.config import (
+    LOG_DIR,
+    LOG_FILE,
+    LOG_MAX_BYTES,
+    LOG_BACKUP_COUNT,
 )
-
-LOG_FILE = LOG_DIR / "jarvis.log"
-
 
 class LoggedStream:
     """Copy complete output lines to a logger and optional terminal."""
@@ -71,8 +66,8 @@ def setup_logging():
 
     handler = RotatingFileHandler(
         LOG_FILE,
-        maxBytes=2_000_000,
-        backupCount=3,
+        maxBytes=LOG_MAX_BYTES,
+        backupCount=LOG_BACKUP_COUNT,
         encoding="utf-8",
     )
 

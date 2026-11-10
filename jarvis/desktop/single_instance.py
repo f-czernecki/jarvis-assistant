@@ -1,7 +1,6 @@
 import msvcrt
 import os
-from pathlib import Path
-
+from jarvis.config import INSTANCE_LOCK_FILE
 
 class SingleInstance:
     """Keep an exclusive Windows file lock while the app is running."""
@@ -12,14 +11,13 @@ class SingleInstance:
     def acquire(self) -> bool:
         if self._file is not None:
             return True
-
-        directory = (
-            Path(os.environ["LOCALAPPDATA"])
-            / "JarvisAssistant"
+        
+        INSTANCE_LOCK_FILE.parent.mkdir(
+            parents=True,
+            exist_ok=True,
         )
-        directory.mkdir(parents=True, exist_ok=True)
 
-        lock_file = open(directory / "jarvis.lock", "a+b")
+        lock_file = open(INSTANCE_LOCK_FILE, "a+b")
 
         try:
             lock_file.seek(0, os.SEEK_END)

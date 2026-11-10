@@ -1,16 +1,15 @@
-from pathlib import Path
-
 import numpy as np
 import sounddevice as sd
 from openwakeword.model import Model
-from app_state import shutdown_event,pause_event
-import voice_input
 
-MODEL_DIR = Path(r"E:\Models\WakeWord")
-
-SAMPLE_RATE = 16000
-BLOCK_SIZE = 1280
-WAKE_THRESHOLD = 0.5
+from jarvis.core.app_state import shutdown_event, pause_event
+from jarvis.config import (
+    WAKE_MODEL_DIR as MODEL_DIR,
+    SAMPLE_RATE,
+    WAKE_BLOCK_SIZE as BLOCK_SIZE,
+    WAKE_THRESHOLD,
+    MICROPHONE,
+)
 
 
 class WakeWordListener:
@@ -52,7 +51,7 @@ class WakeWordListener:
             blocksize=BLOCK_SIZE,
             channels=1,
             dtype="int16",
-            device=voice_input.MICROPHONE,
+            device=MICROPHONE,
         ) as stream:
             while (
                 not shutdown_event.is_set()
