@@ -88,11 +88,8 @@ def spotify_now_playing() -> str:
         artist["name"]
         for artist in item.get("artists", [])
     ) or "Unknown artist"
-
-    if playback.get("is_playing"):
-        return f"{title} by {artists}."
-
-    return f"Playing {title} by {artists}."
+    
+    return f"{title} by {artists}."
 
 
 def _get_active_device() -> dict:

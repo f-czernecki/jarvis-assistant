@@ -94,6 +94,8 @@ SYSTEM_PROMPT = (
     "use spotify_play_liked_songs. "
     "Never invent Spotify track or playlist identifiers. "
     "Stop or pause means pause playback, preserving the current position. "
+    "For action requests, call the appropriate tool without announcing the action."
+    "If the requested item is missing or ambiguous, ask one short, specific question."
 
 )
 
@@ -126,10 +128,14 @@ tools = list(available_tools.values())
 
 messages = []
 
+def enter_standby() -> None:
+    """End the conversation and restore the previous music volume."""
+    del messages[2:]
+    restore_spotify_volume()
 
 def handle_command(command: str):
     if shutdown_event.is_set() or pause_event.is_set():
-        return False
+        return True
     start = perf_counter()
 
     messages.append({
@@ -152,7 +158,7 @@ def handle_command(command: str):
             keep_alive=-1,
         )
         if shutdown_event.is_set() or pause_event.is_set():
-            return False
+            return True
         
         messages.append(response.message)
 
@@ -196,10 +202,12 @@ def handle_command(command: str):
                             "content": build_catalog(),
                         }
                         refreshed = True
-
-                except Exception as error:
+                except Exception:
                     traceback.print_exc()
-                    result = f"Tool error: {error}"
+                    if name.startswith("spotify_"):
+                        result = "Couldn't complete the Spotify request."
+                    else:
+                        result = "Couldn't complete that command."
 
             # None zapisujemy jako techniczny wynik dla modelu,
             # ale nigdy nie dodajemy go do wypowiadanej odpowiedzi.
@@ -256,6 +264,8 @@ SLEEP_PHRASES = {
     "go to sleep",
     "go to sleep jarvis",
     "jarvis go to sleep",
+    "nothing",
+    "nevermind",
 }
 
 EXIT_PHRASES = {
@@ -342,7 +352,7 @@ def main():
         while not shutdown_event.is_set():
             try:
                 if pause_event.is_set():
-                    restore_spotify_volume()
+                    enter_standby()
                     active = False
 
                     while pause_event.is_set():
@@ -375,22 +385,19 @@ def main():
                     break
 
                 if is_sleep_command(command):
-                    restore_spotify_volume()
+                    enter_standby()
                     active = False
                     continue
 
                 if normalize_command(command) == "hey jarvis":
                     continue
 
-                # Zapamiętujemy granicę historii przed nowym poleceniem.
-                history_length = len(messages)
 
                 try:
                     return_to_standby = handle_command(command)
 
                 except Exception as error:
                     traceback.print_exc()
-                    del messages[history_length:]
 
                     print(
                         f"[Error] Command failed: "
@@ -401,13 +408,13 @@ def main():
                         "Check their results before repeating the command."
                     )
 
-                    restore_spotify_volume()
+                    enter_standby()
                     active = False
 
                     continue
 
                 if return_to_standby:
-                    restore_spotify_volume()
+                    enter_standby()
                     active = False
                     print("Standby. Say 'Hey Jarvis'.")
 
@@ -436,7 +443,7 @@ def main():
     finally:
         shutdown_event.set()
         print("[Shutdown] Restoring Spotify volume...")
-        restore_spotify_volume()
+        enter_standby()
         print("[Shutdown] Assistant closed.")
 
 

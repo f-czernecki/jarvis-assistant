@@ -82,7 +82,7 @@ def list_scripts() -> str:
 
     return "\n".join(scripts) if scripts else "No Python scripts found."
 
-def open_script(relative_path: str) -> str:
+def open_script(relative_path: str) -> str|None:
     """Open a Python script in VS Code for editing without executing it.
 
     Args:
@@ -105,7 +105,7 @@ def open_script(relative_path: str) -> str:
                 "This project is not enabled in PROJECT_FOLDERS."
             )
         if not VSCODE_EXE.is_file():
-            return f"VS Code executable not found: {VSCODE_EXE}"
+            return f"Couldn't find VS Code"
 
         subprocess.Popen([
             str(VSCODE_EXE),
@@ -115,8 +115,15 @@ def open_script(relative_path: str) -> str:
 
         return f"Sent VS Code a request to open: {relative_path}"
 
+
+    except FileNotFoundError as error:
+        print(f"[Scripts] {error}")
+        return "File not found. Say the name again."
+
     except (OSError, ValueError) as error:
-        return f"Could not open script: {error}"
+        print(f"[Scripts] Could not open {relative_path}: {error}")
+        return "Couldn't open that file."
+
 
 
 def list_apps() -> str:
@@ -128,7 +135,7 @@ def list_apps() -> str:
     return "\n".join(shortcuts) if shortcuts else "No .lnk shortcuts found."
 
 
-def open_app(shortcut_name: str) -> str:
+def open_app(shortcut_name: str) -> str|None:
 
     """Open or launch a desktop application using its catalog shortcut.
     
@@ -146,8 +153,13 @@ def open_app(shortcut_name: str) -> str:
 
         return f"Sent Windows a request to launch: {shortcut_name}"
 
+    except FileNotFoundError as error:
+        print(f"[Apps] {error}")
+        return "App not found. Say the name again."
+
     except (OSError, ValueError) as error:
-        return f"Could not launch application: {error}"
+        print(f"[Apps] Could not open {shortcut_name}: {error}")
+        return "Couldn't open that app."
     
 def refresh_catalogs() -> str:
     """Refresh the lists of available Python scripts and application shortcuts."""
